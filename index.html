@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chattogram Market Off Days</title>
+<style>
+:root{--bg:#f3f1fa;--card:#fff;--ink:#1e1b3a;--mute:#67638a;--line:#dcd8ef;--red:#b3261e;--redbg:#fbe9e7;--green:#1e7b4f;--amb:#8a5a00;--brand:#3d33a3;--onbrand:#fff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15132b;--card:#201d40;--ink:#ece9ff;--mute:#a29ec8;--line:#38346a;--red:#ff8a80;--redbg:#3a1d1b;--green:#7fd8a6;--amb:#f3c36b;--brand:#a9a2ff;--onbrand:#15132b}}
+:root[data-theme="dark"]{--bg:#15132b;--card:#201d40;--ink:#ece9ff;--mute:#a29ec8;--line:#38346a;--red:#ff8a80;--redbg:#3a1d1b;--green:#7fd8a6;--amb:#f3c36b;--brand:#a9a2ff;--onbrand:#15132b}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.5}
+main{max-width:640px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:1.75rem;line-height:1.2;margin:0 0 6px;color:var(--brand);font-weight:800;letter-spacing:-.02em}
+.sub{margin:0 0 16px;color:var(--mute);font-size:.95rem}
+.today{background:var(--brand);color:var(--onbrand);border-radius:20px;padding:18px 20px;margin-bottom:16px}
+.today b{font-size:1.4rem}
+.today button{all:unset;cursor:pointer;text-decoration:underline;margin-top:4px;display:block;font-size:.92rem}
+.today button:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+input{width:100%;font:inherit;font-size:1.05rem;padding:13px 14px;border:2px solid var(--line);border-radius:99px;background:var(--card);color:var(--ink)}
+input:focus-visible{outline:none;border-color:var(--brand)}
+select{width:100%;font:inherit;padding:10px 12px;margin-top:10px;border:2px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:12px 0;scrollbar-width:none}
+.chips button{flex:none;font:inherit;font-size:.92rem;padding:6px 13px;border-radius:99px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+.chips button[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:var(--onbrand)}
+.chips button:focus-visible,select:focus-visible,.lk a:focus-visible,.star:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.count{color:var(--mute);font-size:.9rem;margin:0 0 8px}
+ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+li{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;justify-content:space-between;gap:12px;align-items:center}
+.sc{border-left-color:var(--red)}.so{border-left-color:var(--green)}.sl{border-left-color:var(--amb)}
+.m{min-width:0}
+.n{font-weight:600;font-size:1.02rem}
+.late{font-size:.85rem;color:var(--amb)}
+.ar,.hr{font-size:.85rem;color:var(--mute)}
+.r{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.off{font-weight:700;color:var(--red);background:var(--redbg);padding:3px 11px;border-radius:8px}
+.st{font-size:.8rem;margin-top:2px}
+.st.c{color:var(--red)}.st.o{color:var(--green)}.st.l{color:var(--amb)}
+.lk{display:flex;gap:14px;margin-top:4px;font-size:.88rem}.lk a{color:var(--brand)}
+.star{all:unset;cursor:pointer;font-size:1.4rem;line-height:1;color:var(--mute);padding:2px}
+.star[aria-pressed="true"]{color:var(--amb)}
+.empty{text-align:center;color:var(--mute);padding:28px 8px;display:block}
+footer{margin-top:22px;color:var(--mute);font-size:.82rem}
+</style>
+</head>
+<body>
+<main>
+<h1>Chattogram Market Off Days</h1>
+<p class="sub">Search a market to see which day it is closed.</p>
+<div class="today" id="today"></div>
+<input id="q" type="search" placeholder="Type a market name, e.g. New Market" autocomplete="off" aria-label="Search markets">
+<select id="area" aria-label="Area" hidden></select>
+<div class="chips" id="chips" role="group" aria-label="Filter by day"></div>
+<p class="count" id="count" aria-live="polite"></p>
+<ul id="list"></ul>
+<footer>Timings can change. Call ahead to confirm before you go.</footer>
+</main>
+<script>
+var D=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+// [name, off day, late-open day, late-open time]
+var M=[
+["New Market",5],["Sanmar",2,3,"after 2:00 PM"],["Central Plaza",5,6,"after 2:30 PM"],
+["Mimi Super Market",0],["Amin Center",0],["Apollo Shopping Complex",0],["Akhtaruzzaman Center",0],
+["Chittagong Shopping Complex",5,6,"after 2:00 PM"],["Kayeri",5],["Lucky Plaza",5],["Khulshi Town Center",1],
+["Finlay Square",3],["UNESCO Center",4],["Alankar Shopping Complex",0],["Pahartali CDA Market",6],
+["Singapore Bangkok Market",6,0,"from 2:00 PM"],["Bahaddarhat Swajan Super Market",6],["Hawkers Market",5],
+["VIP Tower",6],["Jhanak Plaza",0],["Police Plaza",5],["Bali Arcade",1],["Chowmuhani Karnaphuli Market",0],
+["Shah Amanat Market",5],["Gulzar Tower",6],["Moti Tower",5],["Agrabad Southland Center",0],
+["Golam Rasul Market",5,6,"after 12:00 PM"],["Binimoy Tower",5],["Bay Shopping Center",6],["Afmi Plaza",0],
+["Jalsa Shopping",5],["Teribazar",5],["Riazuddin Bazar",5],["Sajal Super Market Bahaddarhat",6],
+["Sholoshahar Super Market",5],["Finlay South City",0],["Elegy Sky Park",0],["Chawkview Shawvrta Super Market",5],
+["Heaven City Center",1],["Noor Shopping Center Katgar",6],["Saf Amin Shopping Mall",6],["Concord Mueen Square Shopping Mall",0]
+];
+// extra info: a = area, h = hours (e.g. "10 AM - 9 PM"), p = phone
+var X={
+"Khulshi Town Center":{a:"Khulshi"},
+"Pahartali CDA Market":{a:"Pahartali"},
+"Bahaddarhat Swajan Super Market":{a:"Bahaddarhat"},
+"Sajal Super Market Bahaddarhat":{a:"Bahaddarhat"},
+"Agrabad Southland Center":{a:"Agrabad"},
+"Sholoshahar Super Market":{a:"Sholoshahar"},
+"Chowmuhani Karnaphuli Market":{a:"Chowmuhani"},
+"Noor Shopping Center Katgar":{a:"Katgar"},
+"Teribazar":{a:"Teribazar"},
+"Riazuddin Bazar":{a:"Riazuddin Bazar"}
+};
+// extra info: a = area, h = hours (e.g. "10 AM - 9 PM"), p = phone
+var X={
+"Khulshi Town Center":{a:"Khulshi"},
+"Pahartali CDA Market":{a:"Pahartali"},
+"Bahaddarhat Swajan Super Market":{a:"Bahaddarhat"},
+"Sajal Super Market Bahaddarhat":{a:"Bahaddarhat"},
+"Agrabad Southland Center":{a:"Agrabad"},
+"Sholoshahar Super Market":{a:"Sholoshahar"},
+"Chowmuhani Karnaphuli Market":{a:"Chowmuhani"},
+"Noor Shopping Center Katgar":{a:"Katgar"},
+"Teribazar":{a:"Teribazar"},
+"Riazuddin Bazar":{a:"Riazuddin Bazar"}
+};
+// extra info: a = area, h = hours (e.g. "10 AM - 9 PM"), p = phone
+var X={
+"Khulshi Town Center":{a:"Khulshi"},
+"Pahartali CDA Market":{a:"Pahartali"},
+"Bahaddarhat Swajan Super Market":{a:"Bahaddarhat"},
+"Sajal Super Market Bahaddarhat":{a:"Bahaddarhat"},
+"Agrabad Southland Center":{a:"Agrabad"},
+"Sholoshahar Super Market":{a:"Sholoshahar"},
+"Chowmuhani Karnaphuli Market":{a:"Chowmuhani"},
+"Noor Shopping Center Katgar":{a:"Katgar"},
+"Teribazar":{a:"Teribazar"},
+"Riazuddin Bazar":{a:"Riazuddin Bazar"}
+};
+var T=new Date().getDay(),day=-1,q="",ar="",fo=false,F=[];
+try{F=JSON.parse(localStorage.getItem("fav")||"[]")}catch(e){}
+function save(){try{localStorage.setItem("fav",JSON.stringify(F))}catch(e){}}
+var $=function(i){return document.getElementById(i)};
+function status(m){
+  if(m[1]===T)return["c","Closed today"];
+  if(m[2]===T)return["l","Opens "+m[3]+" today"];
+  return["o","Open today"];
+}
+function render(){
+  var s=q.trim().toLowerCase();
+  var r=M.map(function(m){return{m:m,x:X[m[0]]||{}}}).filter(function(o){
+    return(day<0||o.m[1]===day)&&(!fo||F.indexOf(o.m[0])>-1)&&(!ar||o.x.a===ar)&&(!s||o.m[0].toLowerCase().indexOf(s)>-1)});
+  r.sort(function(a,b){return(F.indexOf(b.m[0])>-1)-(F.indexOf(a.m[0])>-1)});
+  $("count").textContent=r.length+(r.length===1?" market":" markets");
+  $("list").innerHTML=r.length?r.map(function(o){
+    var m=o.m,x=o.x,st=status(m),f=F.indexOf(m[0])>-1;
+    var map="https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(m[0]+" Chattogram");
+    return '<li class="s'+st[0]+'"><div class="m"><div class="n">'+m[0]+'</div>'+(x.a?'<div class="ar">'+x.a+'</div>':'')+
+      (m[2]!=null?'<div class="late">Opens '+m[3]+' on '+D[m[2]]+'</div>':'')+(x.h?'<div class="hr">Hours: '+x.h+'</div>':'')+
+      '<div class="st '+st[0]+'">'+st[1]+'</div><div class="lk"><a href="'+map+'" target="_blank" rel="noopener">View on map</a>'+
+      (x.p?'<a href="tel:'+x.p+'">Call: '+x.p+'</a>':'')+'</div></div><div class="r"><div class="off">'+D[m[1]]+
+      '</div><button class="star" data-n="'+m[0].replace(/"/g,'&quot;')+'" aria-pressed="'+f+'" aria-label="Favorite">'+(f?'\u2605':'\u2606')+'</button></div></li>';
+  }).join(""):'<li class="empty">'+(fo&&!F.length?'Tap the star next to a market to save it here.':'No market found with that name. Check the spelling.')+'</li>';
+}
+function chips(){
+  var h=['<button aria-pressed="'+(day<0&&!fo)+'" data-d="-1">All</button>','<button aria-pressed="'+fo+'" data-d="f">\u2605 Favorites</button>'];
+  for(var i=0;i<7;i++)h.push('<button aria-pressed="'+(day===i)+'" data-d="'+i+'">'+D[i]+'</button>');
+  $("chips").innerHTML=h.join("");
+}
+function today(){
+  var n=M.filter(function(m){return m[1]===T}).length;
+  $("today").innerHTML='Today is '+D[T]+'<br><b>'+n+' markets closed today</b><button id="tb">See which ones</button>';
+  $("tb").onclick=function(){day=T;fo=false;ar="";q="";$("q").value="";$("area").value="";chips();render()};
+}
+(function(){
+  var a=[];M.forEach(function(m){var x=X[m[0]];if(x&&x.a&&a.indexOf(x.a)<0)a.push(x.a)});
+  if(a.length){var sel=$("area");sel.hidden=false;
+    sel.innerHTML='<option value="">All areas</option>'+a.map(function(v){return'<option>'+v+'</option>'}).join("");
+    sel.onchange=function(){ar=sel.value;render()}}
+})();
+$("q").oninput=function(e){q=e.target.value;render()};
+$("chips").onclick=function(e){var b=e.target.closest("button");if(!b)return;var d=b.dataset.d;
+  if(d==="f"){fo=true;day=-1}else{fo=false;day=+d}chips();render()};
+$("list").onclick=function(e){var b=e.target.closest(".star");if(!b)return;var n=b.dataset.n,k=F.indexOf(n);
+  if(k>-1)F.splice(k,1);else F.push(n);save();render()};
+today();chips();render();
+</script>
+</body>
+</html>
